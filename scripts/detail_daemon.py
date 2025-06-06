@@ -5,11 +5,11 @@ from tqdm import tqdm
 
 import matplotlib
 
-from modules.infotext_utils import PasteField
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import modules.scripts as scripts
+from modules.infotext_utils import PasteField
 from modules.script_callbacks import on_cfg_denoiser, remove_callbacks_for_function
 from modules.ui_components import InputAccordion
 
