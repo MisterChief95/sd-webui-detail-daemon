@@ -12,6 +12,7 @@ from modules.infotext_utils import PasteField
 from modules.script_callbacks import on_cfg_denoiser, remove_callbacks_for_function, on_infotext_pasted
 from modules.ui_components import InputAccordion
 
+
 def parse_infotext(infotext, params):
     if 'Detail Daemon' not in params:
         return
