@@ -4,29 +4,45 @@ import numpy as np
 from tqdm import tqdm
 
 import matplotlib
+
+from modules.infotext_utils import PasteField
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import modules.scripts as scripts
-from modules.script_callbacks import on_cfg_denoiser, remove_callbacks_for_function, on_infotext_pasted
+from modules.script_callbacks import on_cfg_denoiser, remove_callbacks_for_function
 from modules.ui_components import InputAccordion
 
 
-def parse_infotext(infotext, params):
-    try:
-        d = {}
-        for s in params['Detail Daemon'].split(','):
-            k, _, v = s.partition(':')
-            d[k.strip()] = v.strip()
-        params['Detail Daemon'] = d
-    except Exception:
-        pass
+def extract_infotext(d: dict, *keys: str):
+    for key in keys:
+        if key in d:
+            return d[key]
+    return None
 
 
-on_infotext_pasted(parse_infotext)
+def find_first_attr(obj, default, *attr: str):
+    for a in attr:
+        if hasattr(obj, a):
+            return getattr(obj, a)
+    return default
 
 
 class Script(scripts.Script):
+
+    FIELD_NAMES = {
+        "enabled": ("DD ","dd_"),
+        "mode": ("DD Mode",'mode', 'DD_mode', "dd_mode"),
+        "amount": ("DD Amount",'amount', 'DD_amount', "dd_amount"),
+        "start": ("DD Start",'st', 'DD_start', "dd_start"),
+        "end": ("DD End",'ed', 'DD_end', "dd_end"),
+        "bias": ("DD Bias",'bias', 'DD_bias', "dd_bias"),
+        "exponent": ("DD Exponent",'exp', 'DD_exponent', "dd_exponent"),
+        "start_offset": ("DD Start Offset",'st_offset', 'DD_start_offset', "dd_start_offset"),
+        "end_offset": ("DD End Offset",'ed_offset', 'DD_end_offset', "dd_end_offset"),
+        "fade": ("DD Fade",'fade', 'DD_fade', "dd_fade"),
+        "smooth": ("DD Smooth",'smooth', 'DD_smooth', "dd_smooth"),
+    }
 
     def __init__(self):
         super().__init__()
@@ -67,7 +83,7 @@ class Script(scripts.Script):
                     with gr.Column(scale=1, min_width=275): 
                         gr_mode = gr.Dropdown(["both", "cond", "uncond"], value="uncond", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode']) 
                         gr_smooth = gr.Checkbox(label="Smooth", value=True, min_width=60, elem_classes=['detail-daemon-smooth'])
-                        gr.Markdown("## [Ⓗ Help](https://github.com/muerrilla/sd-webui-detail-daemon)", elem_classes=['detail-daemon-help'])
+            gr.Markdown("## [Ⓗ Help](https://github.com/muerrilla/sd-webui-detail-daemon)", elem_classes=['detail-daemon-help'])
 
         gr_amount_slider.release(None, gr_amount_slider, gr_amount, _js="(x) => x")
         gr_amount.change(None, gr_amount, gr_amount_slider, _js="(x) => x")
@@ -85,39 +101,33 @@ class Script(scripts.Script):
             else:
                 vis_arg.change(fn=self.visualize, show_progress=False, inputs=vis_args, outputs=[gr_vis])
 
-        def extract_infotext(d: dict, key, old_key):
-            if 'Detail Daemon' in d:
-                return d['Detail Daemon'].get(key)
-            return d.get(old_key)
-
         self.infotext_fields = [
-            (gr_enabled, lambda d: True if ('Detail Daemon' in d or 'DD_enabled' in d) else False),
-            (gr_mode, lambda d: extract_infotext(d, 'mode', 'DD_mode')),
-            (gr_amount, lambda d: extract_infotext(d, 'amount', 'DD_amount')),
-            (gr_start, lambda d: extract_infotext(d, 'st', 'DD_start')),
-            (gr_end, lambda d: extract_infotext(d, 'ed', 'DD_end')),
-            (gr_bias, lambda d: extract_infotext(d, 'bias', 'DD_bias')),
-            (gr_exponent, lambda d: extract_infotext(d, 'exp', 'DD_exponent')),
-            (gr_start_offset, lambda d: extract_infotext(d, 'st_offset', 'DD_start_offset')),
-            (gr_end_offset, lambda d: extract_infotext(d, 'ed_offset', 'DD_end_offset')),
-            (gr_fade, lambda d: extract_infotext(d, 'fade', 'DD_fade')),
-            (gr_smooth, lambda d: extract_infotext(d, 'smooth', 'DD_smooth')),
+            PasteField(gr_enabled, lambda d: any(any(field in key for field in self.FIELD_NAMES["enabled"]) for key in d.keys()), api="dd_enabled"),
+            PasteField(gr_mode, lambda d: extract_infotext(d, *self.FIELD_NAMES["mode"]), api="dd_mode"),
+            PasteField(gr_amount, lambda d: extract_infotext(d, *self.FIELD_NAMES["amount"]), api="dd_amount"),
+            PasteField(gr_start, lambda d: extract_infotext(d, *self.FIELD_NAMES["start"]), api="dd_start"),
+            PasteField(gr_end, lambda d: extract_infotext(d, *self.FIELD_NAMES["end"]), api="dd_end"),
+            PasteField(gr_bias, lambda d: extract_infotext(d, *self.FIELD_NAMES["bias"]), api="dd_bias"),
+            PasteField(gr_exponent, lambda d: extract_infotext(d, *self.FIELD_NAMES["exponent"]), api="dd_exponent"),
+            PasteField(gr_start_offset, lambda d: extract_infotext(d, *self.FIELD_NAMES["start_offset"]), api="dd_start_offset"),
+            PasteField(gr_end_offset, lambda d: extract_infotext(d, *self.FIELD_NAMES["end_offset"]), api="dd_end_offset"),
+            PasteField(gr_fade, lambda d: extract_infotext(d, *self.FIELD_NAMES["fade"]), api="dd_fade"),
+            PasteField(gr_smooth, lambda d: bool(int(extract_infotext(d, *self.FIELD_NAMES["smooth"]))), api="dd_smooth"),
         ]
         return [gr_enabled, gr_mode, gr_start, gr_end, gr_bias, gr_amount, gr_exponent, gr_start_offset, gr_end_offset, gr_fade, gr_smooth]
     
     def process(self, p, enabled, mode, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth):    
-
-        enabled = getattr(p, "DD_enabled", enabled)
-        mode = getattr(p, "DD_mode", mode)
-        amount = getattr(p, "DD_amount", amount)
-        start = getattr(p, "DD_start", start)
-        end = getattr(p, "DD_end", end)
-        bias = getattr(p, "DD_bias", bias)
-        exponent = getattr(p, "DD_exponent", exponent)
-        start_offset = getattr(p, "DD_start_offset", start_offset)
-        end_offset = getattr(p, "DD_end_offset", end_offset)
-        fade = getattr(p, "DD_fade", fade)
-        smooth = getattr(p, "DD_smooth", smooth)
+        enabled = find_first_attr(p, enabled, *self.FIELD_NAMES["enabled"])
+        mode = find_first_attr(p, mode, *self.FIELD_NAMES["mode"])
+        amount = find_first_attr(p, amount, *self.FIELD_NAMES["amount"])
+        start = find_first_attr(p, start, *self.FIELD_NAMES["start"])
+        end = find_first_attr(p, end, *self.FIELD_NAMES["end"])
+        bias = find_first_attr(p, bias, *self.FIELD_NAMES["bias"])
+        exponent = find_first_attr(p, exponent, *self.FIELD_NAMES["exponent"])
+        start_offset = find_first_attr(p, start_offset, *self.FIELD_NAMES["start_offset"])
+        end_offset = find_first_attr(p, end_offset, *self.FIELD_NAMES["end_offset"])
+        fade = find_first_attr(p, fade, *self.FIELD_NAMES["fade"])
+        smooth = find_first_attr(p, smooth, *self.FIELD_NAMES["smooth"])
 
         if enabled:
             if p.sampler_name in ["DPM adaptive", "HeunPP2"]:
@@ -135,12 +145,26 @@ class Script(scripts.Script):
                 "fade": fade,
                 "smooth": smooth
             }
+
             self.mode = mode
             self.cfg_scale = p.cfg_scale
             self.batch_size = p.batch_size
             on_cfg_denoiser(self.denoiser_callback)              
             self.callback_added = True 
-            p.extra_generation_params['Detail Daemon'] = f'mode:{mode},amount:{amount},st:{start},ed:{end},bias:{bias},exp:{exponent},st_offset:{start_offset},ed_offset:{end_offset},fade:{fade},smooth:{1 if smooth else 0}'
+
+            p.extra_generation_params.update({
+                'DD Mode': mode,
+                'DD Amount': amount,
+                'DD Start': start,
+                'DD End': end,
+                'DD Bias': bias,
+                'DD Exponent': exponent,
+                'DD Start Offset': start_offset,
+                'DD End Offset': end_offset,
+                'DD Fade': fade,
+                'DD Smooth': smooth
+            })
+
             tqdm.write('\033[32mINFO:\033[0m Detail Daemon is enabled')
         else:
             if hasattr(self, 'callback_added'):
