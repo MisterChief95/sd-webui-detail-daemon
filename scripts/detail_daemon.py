@@ -82,7 +82,7 @@ class Script(scripts.Script):
                     with gr.Column(scale=1, min_width=275): 
                         gr_mode = gr.Dropdown(["both", "cond", "uncond"], value="uncond", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode']) 
                         gr_smooth = gr.Checkbox(label="Smooth", value=True, min_width=60, elem_classes=['detail-daemon-smooth'])
-            gr.Markdown("## [Ⓗ Help](https://github.com/muerrilla/sd-webui-detail-daemon)", elem_classes=['detail-daemon-help'])
+                        gr.Markdown("## [Ⓗ Help](https://github.com/muerrilla/sd-webui-detail-daemon)", elem_classes=['detail-daemon-help'])
 
         gr_amount_slider.release(None, gr_amount_slider, gr_amount, _js="(x) => x")
         gr_amount.change(None, gr_amount, gr_amount_slider, _js="(x) => x")
