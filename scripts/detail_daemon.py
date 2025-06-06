@@ -9,8 +9,24 @@ import matplotlib.pyplot as plt
 
 import modules.scripts as scripts
 from modules.infotext_utils import PasteField
-from modules.script_callbacks import on_cfg_denoiser, remove_callbacks_for_function
+from modules.script_callbacks import on_cfg_denoiser, remove_callbacks_for_function, on_infotext_pasted
 from modules.ui_components import InputAccordion
+
+def parse_infotext(infotext, params):
+    if 'Detail Daemon' not in params:
+        return
+    
+    try:
+        d = {}
+        for s in params['Detail Daemon'].split(','):
+            k, _, v = s.partition(':')
+            d[k.strip()] = v.strip()
+        params['Detail Daemon'] = d
+    except Exception:
+        pass
+
+
+on_infotext_pasted(parse_infotext)
 
 
 def extract_infotext(d: dict, *keys: str):
@@ -144,13 +160,11 @@ class Script(scripts.Script):
                 "fade": fade,
                 "smooth": smooth
             }
-
             self.mode = mode
             self.cfg_scale = p.cfg_scale
             self.batch_size = p.batch_size
             on_cfg_denoiser(self.denoiser_callback)              
             self.callback_added = True 
-
             p.extra_generation_params.update({
                 'DD Mode': mode,
                 'DD Amount': amount,
@@ -163,7 +177,6 @@ class Script(scripts.Script):
                 'DD Fade': fade,
                 'DD Smooth': smooth
             })
-
             tqdm.write('\033[32mINFO:\033[0m Detail Daemon is enabled')
         else:
             if hasattr(self, 'callback_added'):
