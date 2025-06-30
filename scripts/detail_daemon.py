@@ -15,18 +15,13 @@ from modules.ui_components import InputAccordion
 from modules.infotext_utils import PasteField
 
 
-# def parse_infotext(infotext, params):
-#     try:
-#         d = {}
-#         for s in params['Detail Daemon'].split(','):
-#             k, _, v = s.partition(':')
-#             d[k.strip()] = v.strip()
-#         params['Detail Daemon'] = d
-#     except Exception:
-#         pass
+allow_mode_select: bool
 
-
-# on_infotext_pasted(parse_infotext)
+try:
+    import modules_forge # noqa: F401
+    allow_mode_select = False
+except ImportError:
+    allow_mode_select = True
 
 
 class Script(scripts.Script):
@@ -77,7 +72,7 @@ class Script(scripts.Script):
                             gr_start_offset = gr.Number(value=0.0, precision=4, step=.01, label="Start Offset", min_width=60)  
                             gr_end_offset = gr.Number(value=0.0, precision=4, step=.01, label="End Offset", min_width=60) 
                     with gr.Column(scale=1, min_width=275): 
-                        gr_mode = gr.Dropdown(["both", "cond", "uncond"], value="uncond", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode']) 
+                        gr_mode = gr.Dropdown(["both", "cond", "uncond"], value=lambda: "uncond" if allow_mode_select else "both", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode'], visible=allow_mode_select) 
                         gr_smooth = gr.Checkbox(label="Smooth", value=True, min_width=60, elem_classes=['detail-daemon-smooth'])
 
             gr_amount_slider.release(None, gr_amount_slider, gr_amount, _js="(x) => x")
@@ -111,7 +106,7 @@ class Script(scripts.Script):
                                 gr_hr_start_offset = gr.Number(value=0.0, precision=4, step=.01, label="Start Offset", min_width=60)  
                                 gr_hr_end_offset = gr.Number(value=0.0, precision=4, step=.01, label="End Offset", min_width=60) 
                         with gr.Column(scale=1, min_width=275): 
-                            gr_hr_mode = gr.Dropdown(["both", "cond", "uncond"], value="uncond", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode']) 
+                            gr_hr_mode = gr.Dropdown(["both", "cond", "uncond"], value=lambda: "uncond" if allow_mode_select else "both", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode'], visible=allow_mode_select) 
                             gr_hr_smooth = gr.Checkbox(label="Smooth", value=True, min_width=60, elem_classes=['detail-daemon-smooth'])
 
                 gr_hr_amount_slider.release(None, gr_hr_amount_slider, gr_hr_amount, _js="(x) => x")
@@ -132,9 +127,7 @@ class Script(scripts.Script):
 
         vis_args = controls.copy()
         vis_args.remove(gr_mode)
-
-        if not is_img2img:
-            vis_args.remove(gr_hr_mode)
+        vis_args.remove(gr_hr_mode)
 
         for vis_arg in vis_args:
             if isinstance(vis_arg, gr.components.Slider):
@@ -298,10 +291,11 @@ class Script(scripts.Script):
     def denoiser_callback(self, params): 
         if self.is_hires and not self.is_hires_enabled:
             return
+        
+        total_steps = max(params.total_sampling_steps, params.denoiser.total_steps)
+        corrected_step_count = total_steps - max(total_steps // params.denoiser.steps - 1, 0)
 
         if self.schedule is None:
-            total_steps = max(params.total_sampling_steps, params.denoiser.total_steps)
-            corrected_step_count = total_steps - max(total_steps // params.denoiser.steps - 1, 0)
             self.schedule = self.make_schedule(corrected_step_count, **(self.schedule_params if not self.is_hires else self.hr_schedule_params))
 
         step = max(params.sampling_step, params.denoiser.step)
