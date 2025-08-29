@@ -385,14 +385,14 @@ class Script(scripts.Script):
                 hires_mean = sum(hires_values)/steps
                 if hr_start > hr_end:
                     hr_start = hr_end
-                hires_plot_color = (0.5, 0.5, 0.5, opacity) if not hr_enabled else (1, (1 - hires_peak)**2, 1, opacity) if hires_mean >= 0 else (1, (1 - hires_peak)**2, 0, opacity)
+                hires_plot_color = (0.5, 0.5, 0.5, opacity) if not enabled else (1, (1 - hires_peak)**2, 1, opacity) if hires_mean >= 0 else (1, (1 - hires_peak)**2, 0, opacity)
                 ax.plot(range(steps), hires_values, color=hires_plot_color, linestyle='-', label="Hires Schedule")
             
             ax.tick_params(right=False, color=plot_color)
             ax.set_xticks([i * (steps - 1) / 10 for i in range(10)][1:])
             ax.set_xticklabels([])
-            ax.set_ylim([-1, 1])
-            ax.set_xlim([0, steps-1])
+            ax.set_ylim((-1, 1))
+            ax.set_xlim((0, steps-1))
 
             plt.close()
 
