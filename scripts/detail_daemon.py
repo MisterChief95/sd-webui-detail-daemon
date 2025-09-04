@@ -44,88 +44,93 @@ class Script(scripts.Script):
         return "Detail Daemon"
 
     def show(self, is_img2img):
-        return scripts.AlwaysVisible
+        return False if is_img2img else scripts.AlwaysVisible
 
     def ui(self, is_img2img):
         with InputAccordion(False, label="Detail Daemon", elem_id=self.elem_id('detail-daemon')) as gr_enabled:
             with gr.Row():
-                with gr.Column(scale=2):                    
-                    gr_amount_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.10, label="Detail Amount")
-                    gr_start = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.2, label="Start")
-                    gr_end = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.8, label="End") 
-                    gr_bias = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.5, label="Bias")                                                                                                                          
-                with gr.Column(scale=1, min_width=275):  
-                    preview = self.visualize(False, 0.2, 0.8, 0.5, 0.1, 1, 0, 0, 0, True, False, 0.2, 0.8, 0.5, 0.1, 1, 0, 0, 0, True)
-                    gr_vis = gr.Plot(value=preview, elem_classes=['detail-daemon-vis'], show_label=False)
-            with gr.Accordion("More Knobs:", elem_classes=['detail-daemon-more-accordion'], open=False):
-                with gr.Row():
-                    with gr.Column(scale=2):   
-                        with gr.Row():                                              
-                            gr_start_offset_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.00, label="Start Offset", min_width=60) 
-                            gr_end_offset_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.00, label="End Offset", min_width=60) 
-                        with gr.Row():
-                            gr_exponent = gr.Slider(minimum=0.0, maximum=10.0, step=.05, value=1.0, label="Exponent", min_width=60) 
-                            gr_fade = gr.Slider(minimum=0.0, maximum=1.0, step=.05, value=0.0, label="Fade", min_width=60) 
-                        # Because the slider max and min are sometimes too limiting:
-                        with gr.Row():
-                            gr_amount = gr.Number(value=0.10, precision=4, step=.01, label="Amount", min_width=60)  
-                            gr_start_offset = gr.Number(value=0.0, precision=4, step=.01, label="Start Offset", min_width=60)  
-                            gr_end_offset = gr.Number(value=0.0, precision=4, step=.01, label="End Offset", min_width=60) 
-                    with gr.Column(scale=1, min_width=275): 
-                        gr_mode = gr.Dropdown(["both", "cond", "uncond"], value=lambda: "uncond" if allow_mode_select else "both", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode'], visible=allow_mode_select) 
-                        gr_smooth = gr.Checkbox(label="Smooth", value=True, min_width=60, elem_classes=['detail-daemon-smooth'])
-
-            gr_amount_slider.release(None, gr_amount_slider, gr_amount, _js="(x) => x")
-            gr_amount.change(None, gr_amount, gr_amount_slider, _js="(x) => x")
-
-            gr_start_offset_slider.release(None, gr_start_offset_slider, gr_start_offset, _js="(x) => x")
-            gr_start_offset.change(None, gr_start_offset, gr_start_offset_slider, _js="(x) => x")
-
-            gr_end_offset_slider.release(None, gr_end_offset_slider, gr_end_offset, _js="(x) => x")
-            gr_end_offset.change(None, gr_end_offset, gr_end_offset_slider, _js="(x) => x")
-
-            with InputAccordion(False, label="HiRes Fix", elem_id=self.elem_id('hr-detail-daemon'), visible=not is_img2img) as gr_hr_enabled:
-                with gr.Row():
-                    with gr.Column(scale=2):                    
-                        gr_hr_amount_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.10, label="Detail Amount")
-                        gr_hr_start = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.2, label="Start")
-                        gr_hr_end = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.8, label="End") 
-                        gr_hr_bias = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.5, label="Bias")                                                                                                                          
-                with gr.Accordion("More Knobs:", elem_classes=['detail-daemon-more-accordion'], open=False):
+                with gr.Column(scale=2, min_width=275):
                     with gr.Row():
-                        with gr.Column(scale=2):   
-                            with gr.Row():                                              
-                                gr_hr_start_offset_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.00, label="Start Offset", min_width=60) 
-                                gr_hr_end_offset_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.00, label="End Offset", min_width=60) 
+                        with InputAccordion(False, label="Base Generation", elem_id=self.elem_id('detail-daemon-settings')) as gr_base_enabled:
                             with gr.Row():
-                                gr_hr_exponent = gr.Slider(minimum=0.0, maximum=10.0, step=.05, value=1.0, label="Exponent", min_width=60) 
-                                gr_hr_fade = gr.Slider(minimum=0.0, maximum=1.0, step=.05, value=0.0, label="Fade", min_width=60) 
-                            # Because the slider max and min are sometimes too limiting:
+                                with gr.Column(scale=2):                    
+                                    gr_amount_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.10, label="Detail Amount")
+                                    gr_start = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.2, label="Start")
+                                    gr_end = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.8, label="End") 
+                                    gr_bias = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.5, label="Bias")
+                            with gr.Accordion("More Knobs:", elem_classes=['detail-daemon-more-accordion'], open=False):
+                                with gr.Column(scale=2):   
+                                    with gr.Row():                                              
+                                        gr_start_offset_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.00, label="Start Offset", min_width=60) 
+                                        gr_end_offset_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.00, label="End Offset", min_width=60) 
+                                    with gr.Row():
+                                        gr_exponent = gr.Slider(minimum=0.0, maximum=10.0, step=.05, value=1.0, label="Exponent", min_width=60) 
+                                        gr_fade = gr.Slider(minimum=0.0, maximum=1.0, step=.05, value=0.0, label="Fade", min_width=60) 
+                                    # Because the slider max and min are sometimes too limiting:
+                                    with gr.Row():
+                                        gr_amount = gr.Number(value=0.10, precision=4, step=.01, label="Amount", min_width=60)  
+                                        gr_start_offset = gr.Number(value=0.0, precision=4, step=.01, label="Start Offset", min_width=60)  
+                                        gr_end_offset = gr.Number(value=0.0, precision=4, step=.01, label="End Offset", min_width=60) 
+                                with gr.Column(scale=1, min_width=275): 
+                                    gr_mode = gr.Dropdown(["both", "cond", "uncond"], value=lambda: "uncond" if allow_mode_select else "both", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode'], visible=allow_mode_select) 
+                                    gr_smooth = gr.Checkbox(label="Smooth", value=True, min_width=60, elem_classes=['detail-daemon-smooth'])
+
+                            gr_amount_slider.release(None, gr_amount_slider, gr_amount, _js="(x) => x")
+                            gr_amount.change(None, gr_amount, gr_amount_slider, _js="(x) => x")
+
+                            gr_start_offset_slider.release(None, gr_start_offset_slider, gr_start_offset, _js="(x) => x")
+                            gr_start_offset.change(None, gr_start_offset, gr_start_offset_slider, _js="(x) => x")
+
+                            gr_end_offset_slider.release(None, gr_end_offset_slider, gr_end_offset, _js="(x) => x")
+                            gr_end_offset.change(None, gr_end_offset, gr_end_offset_slider, _js="(x) => x")
+                    with gr.Row():
+                        with InputAccordion(False, label="HiRes Fix", elem_id=self.elem_id('hr-detail-daemon')) as gr_hr_enabled:
                             with gr.Row():
-                                gr_hr_amount = gr.Number(value=0.10, precision=4, step=.01, label="Amount", min_width=60)  
-                                gr_hr_start_offset = gr.Number(value=0.0, precision=4, step=.01, label="Start Offset", min_width=60)  
-                                gr_hr_end_offset = gr.Number(value=0.0, precision=4, step=.01, label="End Offset", min_width=60) 
-                        with gr.Column(scale=1, min_width=275): 
-                            gr_hr_mode = gr.Dropdown(["both", "cond", "uncond"], value=lambda: "uncond" if allow_mode_select else "both", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode'], visible=allow_mode_select) 
-                            gr_hr_smooth = gr.Checkbox(label="Smooth", value=True, min_width=60, elem_classes=['detail-daemon-smooth'])
+                                with gr.Column(scale=2):                    
+                                    gr_hr_amount_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.10, label="Detail Amount")
+                                    gr_hr_start = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.2, label="Start")
+                                    gr_hr_end = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.8, label="End") 
+                                    gr_hr_bias = gr.Slider(minimum=0.0, maximum=1.0, step=.01, value=0.5, label="Bias")                                                                                                                          
+                            with gr.Accordion("More Knobs:", elem_classes=['detail-daemon-more-accordion'], open=False):
+                                with gr.Row():
+                                    with gr.Column(scale=2):   
+                                        with gr.Row():                                              
+                                            gr_hr_start_offset_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.00, label="Start Offset", min_width=60) 
+                                            gr_hr_end_offset_slider = gr.Slider(minimum=-1.00, maximum=1.00, step=.01, value=0.00, label="End Offset", min_width=60) 
+                                        with gr.Row():
+                                            gr_hr_exponent = gr.Slider(minimum=0.0, maximum=10.0, step=.05, value=1.0, label="Exponent", min_width=60) 
+                                            gr_hr_fade = gr.Slider(minimum=0.0, maximum=1.0, step=.05, value=0.0, label="Fade", min_width=60) 
+                                        # Because the slider max and min are sometimes too limiting:
+                                        with gr.Row():
+                                            gr_hr_amount = gr.Number(value=0.10, precision=4, step=.01, label="Amount", min_width=60)  
+                                            gr_hr_start_offset = gr.Number(value=0.0, precision=4, step=.01, label="Start Offset", min_width=60)  
+                                            gr_hr_end_offset = gr.Number(value=0.0, precision=4, step=.01, label="End Offset", min_width=60) 
+                                    with gr.Column(scale=1, min_width=275): 
+                                        gr_hr_mode = gr.Dropdown(["both", "cond", "uncond"], value=lambda: "uncond" if allow_mode_select else "both", label="Mode", show_label=True, min_width=60, elem_classes=['detail-daemon-mode'], visible=allow_mode_select) 
+                                        gr_hr_smooth = gr.Checkbox(label="Smooth", value=True, min_width=60, elem_classes=['detail-daemon-smooth'])
 
-                gr_hr_amount_slider.release(None, gr_hr_amount_slider, gr_hr_amount, _js="(x) => x")
-                gr_hr_amount.change(None, gr_hr_amount, gr_hr_amount_slider, _js="(x) => x")
+                            gr_hr_amount_slider.release(None, gr_hr_amount_slider, gr_hr_amount, _js="(x) => x")
+                            gr_hr_amount.change(None, gr_hr_amount, gr_hr_amount_slider, _js="(x) => x")
 
-                gr_hr_start_offset_slider.release(None, gr_hr_start_offset_slider, gr_hr_start_offset, _js="(x) => x")
-                gr_hr_start_offset.change(None, gr_hr_start_offset, gr_hr_start_offset_slider, _js="(x) => x")
+                            gr_hr_start_offset_slider.release(None, gr_hr_start_offset_slider, gr_hr_start_offset, _js="(x) => x")
+                            gr_hr_start_offset.change(None, gr_hr_start_offset, gr_hr_start_offset_slider, _js="(x) => x")
 
-                gr_hr_end_offset_slider.release(None, gr_hr_end_offset_slider, gr_hr_end_offset, _js="(x) => x")
-                gr_hr_end_offset.change(None, gr_hr_end_offset, gr_hr_end_offset_slider, _js="(x) => x")
+                            gr_hr_end_offset_slider.release(None, gr_hr_end_offset_slider, gr_hr_end_offset, _js="(x) => x")
+                            gr_hr_end_offset.change(None, gr_hr_end_offset, gr_hr_end_offset_slider, _js="(x) => x")
+            
+                with gr.Column(scale=1, min_width=275):
+                    preview = self.visualize(False, 0.2, 0.8, 0.5, 0.1, 1, 0, 0, 0, True, False, 0.5, 0.95, 0.5, 0.1, 1, 0, 0, 0, True)
+                    gr_vis = gr.Plot(value=preview, elem_classes=['detail-daemon-vis'], show_label=False)
 
             gr.Markdown("## [Ⓗ Help](https://github.com/muerrilla/sd-webui-detail-daemon)", elem_classes=['detail-daemon-help'])        
 
         controls = [
-            gr_enabled, gr_mode, gr_start, gr_end, gr_bias, gr_amount, gr_exponent, gr_start_offset, gr_end_offset, gr_fade, gr_smooth,
+            gr_enabled, gr_base_enabled, gr_mode, gr_start, gr_end, gr_bias, gr_amount, gr_exponent, gr_start_offset, gr_end_offset, gr_fade, gr_smooth,
             gr_hr_enabled, gr_hr_mode, gr_hr_start, gr_hr_end, gr_hr_bias, gr_hr_amount, gr_hr_exponent, gr_hr_start_offset, gr_hr_end_offset, gr_hr_fade, gr_hr_smooth,
         ]
 
         vis_args = controls.copy()
+        vis_args.remove(gr_enabled)
         vis_args.remove(gr_mode)
         vis_args.remove(gr_hr_mode)
 
@@ -137,6 +142,7 @@ class Script(scripts.Script):
 
         self.infotext_fields = [
             PasteField(gr_enabled, lambda d: 'DD' in d or 'dd_' in d, api='dd_enabled'),
+            PasteField(gr_base_enabled, lambda d: 'DD Base' in d, api='dd_base_enabled'),
             PasteField(gr_mode, 'DD Mode', api='dd_mode'),
             PasteField(gr_amount, 'DD Amount', api='dd_amount'),
             PasteField(gr_start, 'DD Start', api='dd_start'),
@@ -167,14 +173,25 @@ class Script(scripts.Script):
         return controls
     
     def process(self, p, 
-                enabled, mode, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth,
+                enabled, base_enabled, mode, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth,
                 hr_enabled, hr_mode, hr_start, hr_end, hr_bias, hr_amount, hr_exponent, hr_start_offset, hr_end_offset, hr_fade, hr_smooth):
 
-        if enabled:
-            if p.sampler_name in ["DPM adaptive", "HeunPP2"]:
-                tqdm.write(f'\033[33mWARNING:\033[0m Detail Daemon does not work with {p.sampler_name}')
-                return
-            
+        if not enabled or (not base_enabled and not hr_enabled):
+            if self.callback_added:
+                remove_callbacks_for_function(self.denoiser_callback)
+                self.callback_added = False
+                self.schedule = None
+                self.hr_schedule = None
+                self.is_hires = self.is_hires_enabled = False
+            return
+
+        if p.sampler_name in ["DPM adaptive", "HeunPP2"]:
+            tqdm.write(f'\033[33mWARNING:\033[0m Detail Daemon does not work with {p.sampler_name}')
+            return
+        
+        is_txt2img_upscale: bool = hasattr(p, "txt2img_upscale") and p.txt2img_upscale
+
+        if base_enabled and not (p.is_hr_pass or is_txt2img_upscale):
             self.schedule_params = {
                 "start": start,
                 "end": end,
@@ -186,27 +203,8 @@ class Script(scripts.Script):
                 "fade": fade,
                 "smooth": smooth,
             }
-
-            if hr_enabled:
-                self.hr_schedule_params = {
-                    "start": hr_start,
-                    "end": hr_end,
-                    "bias": hr_bias,
-                    "amount": hr_amount,
-                    "exponent": hr_exponent,
-                    "start_offset": hr_start_offset,
-                    "end_offset": hr_end_offset,
-                    "fade": hr_fade,
-                    "smooth": hr_smooth,
-                }
-
-            self.mode = mode
-            self.cfg_scale = p.cfg_scale
-            self.batch_size = p.batch_size
-            on_cfg_denoiser(self.denoiser_callback)              
-            self.callback_added = True 
-            
             p.extra_generation_params.update({
+                "DD Base": base_enabled,
                 "DD Mode": mode,
                 "DD Amount": amount,
                 "DD Start": start,
@@ -218,30 +216,13 @@ class Script(scripts.Script):
                 "DD Fade": fade,
                 "DD Smooth": smooth,
             })
-
-            if hr_enabled:
-                p.extra_generation_params.update({
-                    "DD HR Mode": hr_mode,
-                    "DD HR Amount": hr_amount,
-                    "DD HR Start": hr_start,
-                    "DD HR End": hr_end,
-                    "DD HR Bias": hr_bias,
-                    "DD HR Exponent": hr_exponent,
-                    "DD HR Start Offset": hr_start_offset,
-                    "DD HR End Offset": hr_end_offset,
-                    "DD HR Fade": hr_fade,
-                    "DD HR Smooth": hr_smooth,
-                })
-            
             tqdm.write('\033[32mINFO:\033[0m Detail Daemon is enabled')
 
-        elif self.callback_added:
-            remove_callbacks_for_function(self.denoiser_callback)
-            self.callback_added = False
-            self.schedule = None
-            self.hr_schedule = None
-            self.is_hires = self.is_hires_enabled = False
-
+        self.mode = mode
+        self.cfg_scale = p.cfg_scale
+        self.batch_size = p.batch_size
+        on_cfg_denoiser(self.denoiser_callback)              
+        self.callback_added = True         
 
     def postprocess(self, p, processed, *args):
         if self.callback_added:
@@ -253,14 +234,39 @@ class Script(scripts.Script):
             opts.img2img_fix_steps = self.img2img_fix_steps_old if self.is_img2img_fix_steps_changed else opts.img2img_fix_steps
 
     def before_hr(self, p, 
-            enabled, mode, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth,
+            enabled, base_enabled, mode, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth,
             hr_enabled, hr_mode, hr_start, hr_end, hr_bias, hr_amount, hr_exponent, hr_start_offset, hr_end_offset, hr_fade, hr_smooth):
         
         self.is_hires = p.is_hr_pass or (hasattr(p, "txt2img_upscale") and p.txt2img_upscale)
-        self.is_hires_enabled = self.is_hires and hr_enabled
+        self.is_hires_enabled = self.is_hires and enabled and hr_enabled
         
         if not self.is_hires_enabled:
             return
+        
+        self.hr_schedule_params = {
+            "start": hr_start,
+            "end": hr_end,
+            "bias": hr_bias,
+            "amount": hr_amount,
+            "exponent": hr_exponent,
+            "start_offset": hr_start_offset,
+            "end_offset": hr_end_offset,
+            "fade": hr_fade,
+            "smooth": hr_smooth,
+        }
+        p.extra_generation_params.update({
+            "DD HR Mode": hr_mode,
+            "DD HR Amount": hr_amount,
+            "DD HR Start": hr_start,
+            "DD HR End": hr_end,
+            "DD HR Bias": hr_bias,
+            "DD HR Exponent": hr_exponent,
+            "DD HR Start Offset": hr_start_offset,
+            "DD HR End Offset": hr_end_offset,
+            "DD HR Fade": hr_fade,
+            "DD HR Smooth": hr_smooth,
+        })
+        tqdm.write('\033[32mINFO:\033[0m Detail Daemon is enabled for Hires Fix')
         
         self.cfg_scale = p.hr_cfg
         self.mode = hr_mode
@@ -269,10 +275,8 @@ class Script(scripts.Script):
         self.img2img_fix_steps_old = opts.img2img_fix_steps
         opts.img2img_fix_steps = True
 
-        tqdm.write('\033[32mINFO:\033[0m Detail Daemon is enabled for Hires Fix')
-
     def setup(self, p, 
-              enabled, mode, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth,
+              enabled, base_enabled, mode, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth,
               hr_enabled, hr_mode, hr_start, hr_end, hr_bias, hr_amount, hr_exponent, hr_start_offset, hr_end_offset, hr_fade, hr_smooth):
         
         # Define parameter mappings
@@ -281,7 +285,7 @@ class Script(scripts.Script):
         
         # Set base parameters
         for param in base_params:
-            setattr(p, param, locals()[param] if enabled else None)
+            setattr(p, param, locals()[param] if enabled and base_enabled else None)
         
         # Set HR parameters
         for param in hr_params:
@@ -292,11 +296,17 @@ class Script(scripts.Script):
         if self.is_hires and not self.is_hires_enabled:
             return
         
+        # TODO: Correct step counts for HR mode
         total_steps = max(params.total_sampling_steps, params.denoiser.total_steps)
         corrected_step_count = total_steps - max(total_steps // params.denoiser.steps - 1, 0)
 
         if self.schedule is None:
-            self.schedule = self.make_schedule(corrected_step_count, **(self.schedule_params if not self.is_hires else self.hr_schedule_params))
+            if self.schedule_params and not self.is_hires:
+                 self.schedule = self.make_schedule(corrected_step_count, **(self.schedule_params))
+            elif self.hr_schedule_params:
+                 self.schedule = self.make_schedule(corrected_step_count, **(self.hr_schedule_params))
+            else:
+                return
 
         step = max(params.sampling_step, params.denoiser.step)
         idx = min(step, corrected_step_count - 1)
@@ -347,37 +357,43 @@ class Script(scripts.Script):
 
         return multipliers
 
+    DEFAULT_PLOT_COLOR = (0.5, 0.5, 0.5, 1.0)
+
     def visualize(self, 
-                  enabled, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth,
+                  base_enabled, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth,
                   hr_enabled, hr_start, hr_end, hr_bias, hr_amount, hr_exponent, hr_start_offset, hr_end_offset, hr_fade, hr_smooth):
         try:
             steps = 50
-            base_values = self.make_schedule(steps, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth)
-            mean = sum(base_values)/steps
-            peak = np.clip(max(abs(base_values)), -1, 1)
-            
-            if start > end:
-                start = end
-            
-            mid = start + bias * (end - start)
-            opacity = .1 + (1 - fade) * 0.7
-            plot_color = (0.5, 0.5, 0.5, opacity) if not enabled else ((1 - peak)**2, 1, 0, opacity) if mean >= 0 else (1, (1 - peak)**2, 0, opacity) 
-            
+
             plt.rcParams.update({
-                "text.color":  plot_color, 
-                "axes.labelcolor":  plot_color, 
-                "axes.edgecolor":  plot_color, 
+                "text.color":  self.DEFAULT_PLOT_COLOR, 
+                "axes.labelcolor":  self.DEFAULT_PLOT_COLOR, 
+                "axes.edgecolor":  self.DEFAULT_PLOT_COLOR, 
                 "figure.facecolor":  (0.0, 0.0, 0.0, 0.0),  
                 "axes.facecolor":    (0.0, 0.0, 0.0, 0.0),  
                 "ytick.labelsize": 6,
-                "ytick.labelcolor": plot_color,
-                "ytick.color": plot_color,
+                "ytick.labelcolor": self.DEFAULT_PLOT_COLOR,
+                "ytick.color": self.DEFAULT_PLOT_COLOR,
             })
-            
+
             fig, ax = plt.subplots(figsize=(2.15, 2.00), layout="constrained")
-            ax.plot(range(steps), base_values, color=plot_color, label="Base Schedule")
-            ax.axhline(y=0, color=plot_color, linestyle='dotted')
-            ax.axvline(x=mid * (steps - 1), color=plot_color, linestyle='dotted')
+
+            opacity = .1 + (1 - fade) * 0.7
+
+            if base_enabled:
+                base_values = self.make_schedule(steps, start, end, bias, amount, exponent, start_offset, end_offset, fade, smooth)
+                mean = sum(base_values)/steps
+                peak = np.clip(max(abs(base_values)), -1, 1)
+                
+                if start > end:
+                    start = end
+                
+                mid = start + bias * (end - start)
+                
+                plot_color = self.DEFAULT_PLOT_COLOR if not base_enabled else ((1 - peak)**2, 1, 0, opacity) if mean >= 0 else (1, (1 - peak)**2, 0, opacity) 
+                ax.plot(range(steps), base_values, color=plot_color, label="Base Schedule")
+                ax.axhline(y=0, color=self.DEFAULT_PLOT_COLOR, linestyle='dotted')
+                ax.axvline(x=mid * (steps - 1), color=self.DEFAULT_PLOT_COLOR, linestyle='dotted')
             
             if hr_enabled:
                 hires_values = self.make_schedule(steps, hr_start, hr_end, hr_bias, hr_amount, hr_exponent, hr_start_offset, hr_end_offset, hr_fade, hr_smooth)
@@ -385,10 +401,13 @@ class Script(scripts.Script):
                 hires_mean = sum(hires_values)/steps
                 if hr_start > hr_end:
                     hr_start = hr_end
-                hires_plot_color = (0.5, 0.5, 0.5, opacity) if not enabled else (1, (1 - hires_peak)**2, 1, opacity) if hires_mean >= 0 else (1, (1 - hires_peak)**2, 0, opacity)
+                hr_mid = hr_start + hr_bias * (hr_end - hr_start)
+                hires_plot_color = self.DEFAULT_PLOT_COLOR if not hr_enabled else (1, (1 - hires_peak)**2, 1, opacity) if hires_mean >= 0 else (1, (1 - hires_peak)**2, 0, opacity)
                 ax.plot(range(steps), hires_values, color=hires_plot_color, linestyle='-', label="Hires Schedule")
-            
-            ax.tick_params(right=False, color=plot_color)
+                ax.axhline(y=0, color=self.DEFAULT_PLOT_COLOR, linestyle='dotted')
+                ax.axvline(x=hr_mid * (steps - 1), color=self.DEFAULT_PLOT_COLOR, linestyle='dotted')
+
+            ax.tick_params(right=False, color=self.DEFAULT_PLOT_COLOR)
             ax.set_xticks([i * (steps - 1) / 10 for i in range(10)][1:])
             ax.set_xticklabels([])
             ax.set_ylim((-1, 1))
@@ -419,6 +438,11 @@ def xyz_support():
                 str,
                 xy_grid.apply_field('dd_mode'),
                 confirm=confirm_mode
+            )
+            base_enabled = xy_grid.AxisOption(
+                '[Detail Daemon] Base Enabled',
+                str,
+                xy_grid.apply_field('dd_base_enabled')
             )
             amount = xy_grid.AxisOption(
                 '[Detail Daemon] Amount',
@@ -508,6 +532,7 @@ def xyz_support():
             )                                      
             xy_grid.axis_options.extend([
                 mode,
+                base_enabled,
                 amount,
                 start, 
                 end, 
